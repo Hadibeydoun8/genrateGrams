@@ -22,6 +22,7 @@ class PDF(FPDF):
         self.image(image, link='', type='')
 
 
+
 def extractData(csvFile):
     with open(csvFile) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -46,7 +47,7 @@ def addTextToImages():
         draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
         draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
         draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
-        template.save(f'.\\images\\image{index}.png')
+        template.save(f'.//images/image{index}.png')
         imagePaths.append(f"image{index}.png")
         index = index + 1
 
@@ -62,7 +63,7 @@ def saveToPdf():
     yPosIndex = 0
     changeX = True
     for _ in nameOfReceiver:
-        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images//image{index}.png")
+        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images/image{index}.png")
         if changeX:
             xPosIndex = xPosIndex + 1
             changeX = False
@@ -118,6 +119,10 @@ def getCSV():
         assert response.status_code == 200, 'Wrong status code'
         print(response.content)
 
+def rmFiles():
+  for x in range(0, 37):
+    os.remove(f".\images\\image{x}.png")
+
 
 def main():
     print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory")
@@ -141,6 +146,8 @@ def main():
         deleteImages()
     elif choice == 5:
         getCSV()
+    elif choice == 6:
+      rmFiles()
 
 if __name__ == "__main__":
     main()
