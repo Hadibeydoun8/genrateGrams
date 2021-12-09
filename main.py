@@ -14,7 +14,7 @@ nameOfReceiver = []
 nameOfGiver = []
 teacher = []
 imagePaths = []
-
+amountOrdered = []
 
 class PDF(FPDF):
     def imagex(self, x, y, image):
@@ -34,6 +34,7 @@ def extractData(csvFile):
                 nameOfReceiver.append(row[0])
                 nameOfGiver.append(row[1])
                 teacher.append(row[2])
+                amountOrdered.append(int(row[3]))
 
 
 def addTextToImages():
@@ -41,15 +42,18 @@ def addTextToImages():
     deleteImages()
     makImagesDir()
     for _ in nameOfReceiver:
-        template = Image.open("template.png")
-        font = ImageFont.truetype("Roboto-Black.ttf", 14)
-        draw = ImageDraw.Draw(template)
-        draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
-        draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
-        draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
-        template.save(f'.//images/image{index}.png')
-        imagePaths.append(f"image{index}.png")
-        index = index + 1
+      amount = 0
+      template = Image.open("template.png")
+      font = ImageFont.truetype("Roboto-Black.ttf", 14)
+      draw = ImageDraw.Draw(template)
+      draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
+      draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
+      draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
+      template.save(f'.//images/image{index}_{amount}.png')
+      imagePaths.append(f"image{index}.png")
+      index = index + 1
+      amount = amount + 1
+      print("hi")
 
 
 def saveToPdf():
@@ -63,7 +67,9 @@ def saveToPdf():
     yPosIndex = 0
     changeX = True
     for _ in nameOfReceiver:
-        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images/image{index}.png")
+      amount = 0
+      for x in range(1, amountOrdered[index]):
+        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images/image{index}_{x}.png")
         if changeX:
             xPosIndex = xPosIndex + 1
             changeX = False
@@ -76,6 +82,7 @@ def saveToPdf():
             pdf.add_page()
             xPosIndex = 0
             yPosIndex = 0
+        amount = amount + 1
     pdf.output('output.pdf', 'F')
 
 
@@ -124,29 +131,36 @@ def rmFiles():
     os.remove(f".\images\\image{x}.png")
 
 
+def rmPDF():
+  try:
+    os.remove("./output.pdf")
+  except:
+    print("File does not exist")
+
+
 def main():
-    print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory")
+    print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory\n5. Delete Images and Files")
     choice = int(input())
     if choice == 1:
-        makImagesDir()
         extractData(getCSV())
         addTextToImages()
     elif choice == 2:
-        makImagesDir()
         extractData(getCSV())
         addTextToImages()
         saveToPdf()
         deleteImages()
     elif choice == 3:
-        makImagesDir()
         extractData(getCSV())
         addTextToImages()
         saveToPdf()
     elif choice == 4:
         deleteImages()
     elif choice == 5:
-        getCSV()
+      deleteImages()
+      rmPDF()
     elif choice == 6:
+        getCSV()
+    elif choice == 7:
       rmFiles()
 
 if __name__ == "__main__":
