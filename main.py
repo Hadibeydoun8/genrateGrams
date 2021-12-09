@@ -4,12 +4,21 @@
 
 
 import csv
+import os
+import shutil
 from PIL import Image, ImageFont, ImageDraw
+from fpdf import FPDF
 
 nameOfReceiver = []
 nameOfGiver = []
 teacher = []
 imagePaths = []
+
+
+class PDF(FPDF):
+    def imagex(self, x, y, image):
+        self.set_xy(x, y)
+        self.image(image, link='', type='')
 
 
 def extractData():
@@ -23,8 +32,6 @@ def extractData():
                 nameOfReceiver.append(row[0])
                 nameOfGiver.append(row[1])
                 teacher.append(row[2])
-        for x in nameOfReceiver:
-            print(x)
 
 
 def addTextToImages():
@@ -42,12 +49,66 @@ def addTextToImages():
 
 
 def saveToPdf():
-    pass
+    index = 0
+    xPos = [0, 107.95]
+    yPos = [0, 63, 126, 189]
+    pdf = PDF(orientation='P', unit='mm', format='Letter')
+    pdf.add_page()
+
+    xPosIndex = 0
+    yPosIndex = 0
+    changeX = True
+    for _ in nameOfReceiver:
+        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images//image{index}.png")
+        if changeX:
+            xPosIndex = xPosIndex + 1
+            changeX = False
+        else:
+            xPosIndex = xPosIndex - 1
+            yPosIndex = yPosIndex + 1
+            changeX = True
+        index = index + 1
+        if (index % 8) == 0 and index < len(nameOfReceiver):
+            pdf.add_page()
+            xPosIndex = 0
+            yPosIndex = 0
+    pdf.output('test.pdf', 'F')
+
+
+def deleteImages():
+    try:
+        shutil.rmtree(".//images")
+    except FileNotFoundError:
+        print("Folder does not exist")
+
+
+def makImagesDir():
+    try:
+        os.mkdir(".//images")
+    except FileExistsError:
+        print("Folder exists")
 
 
 def main():
-    extractData()
-    addTextToImages()
+    print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory")
+    choice = int(input())
+    if choice == 1:
+        makImagesDir()
+        extractData()
+        addTextToImages()
+    elif choice == 2:
+        makImagesDir()
+        extractData()
+        addTextToImages()
+        saveToPdf()
+        deleteImages()
+    elif choice == 3:
+        makImagesDir()
+        extractData()
+        addTextToImages()
+        saveToPdf()
+    elif choice == 4:
+        deleteImages()
 
 
 if __name__ == "__main__":
