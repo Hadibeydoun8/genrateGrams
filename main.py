@@ -5,6 +5,7 @@
 
 import csv
 import os
+import requests
 import shutil
 from PIL import Image, ImageFont, ImageDraw
 from fpdf import FPDF
@@ -21,8 +22,8 @@ class PDF(FPDF):
         self.image(image, link='', type='')
 
 
-def extractData():
-    with open('cvs.csv') as csv_file:
+def extractData(csvFile):
+    with open(csvFile) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         lineCount = 0
         for row in csv_reader:
@@ -36,13 +37,15 @@ def extractData():
 
 def addTextToImages():
     index = 0
+    deleteImages()
+    makImagesDir()
     for _ in nameOfReceiver:
         template = Image.open("template.png")
         font = ImageFont.truetype("Roboto-Black.ttf", 14)
         draw = ImageDraw.Draw(template)
-        draw.text((50, 26), f"{nameOfReceiver[index]}", (40, 49, 52), font)
-        draw.text((86, 46), f"{teacher[index]}", (40, 49, 52), font)
-        draw.text((65, 66), f"{nameOfGiver[index]}", (40, 49, 52), font)
+        draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
+        draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
+        draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
         template.save(f'.\\images\\image{index}.png')
         imagePaths.append(f"image{index}.png")
         index = index + 1
@@ -72,7 +75,7 @@ def saveToPdf():
             pdf.add_page()
             xPosIndex = 0
             yPosIndex = 0
-    pdf.output('test.pdf', 'F')
+    pdf.output('output.pdf', 'F')
 
 
 def deleteImages():
@@ -89,27 +92,55 @@ def makImagesDir():
         print("Folder exists")
 
 
+def getCSV():
+    index = 1
+    csvOptions = []
+    print("Please pick one: \n1. Use existing file\n2. Pull a csv from google drive")
+    choiceA = int(input())
+    if choiceA == 1:
+        for file in os.listdir(".//"):
+            if file.endswith(".csv"):
+                csvOptions.append(os.path.join(".//", file))
+        if len(csvOptions) == 1:
+            print(f"Using  {csvOptions[0]}")
+            return csvOptions[0]
+        else:
+            for x in csvOptions:
+                print(f"{index}. {x.replace('.//', '')}")
+                index = index + 1
+            choice = int(input())
+        return csvOptions[choice - 1]
+    elif choiceA == 2:
+        sheetLink = input("please enter link to sheet: ")
+        #sheetLink = input()
+        response = requests.get(
+            f'{sheetLink}&output=csv')
+        assert response.status_code == 200, 'Wrong status code'
+        print(response.content)
+
+
 def main():
     print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory")
     choice = int(input())
     if choice == 1:
         makImagesDir()
-        extractData()
+        extractData(getCSV())
         addTextToImages()
     elif choice == 2:
         makImagesDir()
-        extractData()
+        extractData(getCSV())
         addTextToImages()
         saveToPdf()
         deleteImages()
     elif choice == 3:
         makImagesDir()
-        extractData()
+        extractData(getCSV())
         addTextToImages()
         saveToPdf()
     elif choice == 4:
         deleteImages()
-
+    elif choice == 5:
+        getCSV()
 
 if __name__ == "__main__":
     main()
