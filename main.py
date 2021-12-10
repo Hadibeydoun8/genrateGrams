@@ -16,11 +16,11 @@ teacher = []
 imagePaths = []
 amountOrdered = []
 
+
 class PDF(FPDF):
     def imagex(self, x, y, image):
         self.set_xy(x, y)
         self.image(image, link='', type='')
-
 
 
 def extractData(csvFile):
@@ -42,18 +42,16 @@ def addTextToImages():
     deleteImages()
     makImagesDir()
     for _ in nameOfReceiver:
-      amount = 0
-      template = Image.open("template.png")
-      font = ImageFont.truetype("Roboto-Black.ttf", 14)
-      draw = ImageDraw.Draw(template)
-      draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
-      draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
-      draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
-      template.save(f'.//images/image{index}_{amount}.png')
-      imagePaths.append(f"image{index}.png")
-      index = index + 1
-      amount = amount + 1
-      print("hi")
+        for x in range(0, amountOrdered[index]):
+            template = Image.open("template.png")
+            font = ImageFont.truetype("Roboto-Black.ttf", 14)
+            draw = ImageDraw.Draw(template)
+            draw.text((50, 26), f"{nameOfReceiver[index].title()}", (40, 49, 52), font)
+            draw.text((86, 46), f"{teacher[index].title()}", (40, 49, 52), font)
+            draw.text((65, 66), f"{nameOfGiver[index].title()}", (40, 49, 52), font)
+            template.save(f'.//images/image{index}_{x}.png')
+            imagePaths.append(f"image{index}_{x}.png")
+        index = index + 1
 
 
 def saveToPdf():
@@ -66,23 +64,24 @@ def saveToPdf():
     xPosIndex = 0
     yPosIndex = 0
     changeX = True
+    amountDone = 0
     for _ in nameOfReceiver:
-      amount = 0
-      for x in range(1, amountOrdered[index]):
-        pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images/image{index}_{x}.png")
-        if changeX:
-            xPosIndex = xPosIndex + 1
-            changeX = False
-        else:
-            xPosIndex = xPosIndex - 1
-            yPosIndex = yPosIndex + 1
-            changeX = True
+        for x in range(0, amountOrdered[index]):
+            pdf.imagex(xPos[xPosIndex], yPos[yPosIndex], f".//images/image{index}_{x}.png")
+            amountDone = amountDone + 1
+            if changeX:
+                xPosIndex = xPosIndex + 1
+                changeX = False
+            else:
+                xPosIndex = xPosIndex - 1
+                yPosIndex = yPosIndex + 1
+                changeX = True
+            if (amountDone % 8) == 0 and amountDone < len(nameOfReceiver):
+                pdf.add_page()
+                changeX = True
+                xPosIndex = 0
+                yPosIndex = 0
         index = index + 1
-        if (index % 8) == 0 and index < len(nameOfReceiver):
-            pdf.add_page()
-            xPosIndex = 0
-            yPosIndex = 0
-        amount = amount + 1
     pdf.output('output.pdf', 'F')
 
 
@@ -120,26 +119,28 @@ def getCSV():
         return csvOptions[choice - 1]
     elif choiceA == 2:
         sheetLink = input("please enter link to sheet: ")
-        #sheetLink = input()
+        # sheetLink = input()
         response = requests.get(
             f'{sheetLink}&output=csv')
         assert response.status_code == 200, 'Wrong status code'
         print(response.content)
 
+
 def rmFiles():
-  for x in range(0, 37):
-    os.remove(f".\images\\image{x}.png")
+    for x in range(0, 37):
+        os.remove(f".\\images\\image{x}.png")
 
 
 def rmPDF():
-  try:
-    os.remove("./output.pdf")
-  except:
-    print("File does not exist")
+    try:
+        os.remove("./output.pdf")
+    except FileNotFoundError:
+        print("File does not exist")
 
 
 def main():
-    print("What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory\n5. Delete Images and Files")
+    print(
+        "What would you like to do?\n1. Generate only Images\n2. Generate a PDF\n3. Generate a PDF and Save Images\n4. Delete Images Directory\n5. Delete Images and Files")
     choice = int(input())
     if choice == 1:
         extractData(getCSV())
@@ -156,12 +157,13 @@ def main():
     elif choice == 4:
         deleteImages()
     elif choice == 5:
-      deleteImages()
-      rmPDF()
+        deleteImages()
+        rmPDF()
     elif choice == 6:
         getCSV()
     elif choice == 7:
-      rmFiles()
+        rmFiles()
+
 
 if __name__ == "__main__":
     main()
